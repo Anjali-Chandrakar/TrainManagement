@@ -11,7 +11,8 @@ public class Constants {
 	public static final String OPERATION_READ = "/read";
 	public static final String OPERATION_UPDATE = "/update";
 	public static final String OPERATION_DELETE = "/delete";
-	public static final String OPERATION_LIST = "/list";	
+	public static final String OPERATION_LIST = "/list";
+	public static final String OPERATION_AVAILABLE_TRAIN = "/available-train";
 	public static final String IRCTC_BASE_URL = "/irctc-api";
 	public static final String IRCTC_TRAIN = IRCTC_BASE_URL + "/train";
 }
