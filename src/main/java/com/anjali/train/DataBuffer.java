@@ -46,11 +46,6 @@ public class DataBuffer {
    {
        RestTemplate restTemplate = new RestTemplate();
 	   String url = "http://localhost:8081/irctc-api/station/list";
-	   //ResponseEntity<StationList> response = restTemplate.getForEntity(url, StationList.class);
-	   //List<Station> stationList = response.getBody().getStationList();
-	   //stationList=restTemplate.getForObject("http://localhost:8081/irctc-api/station/list",List.class);
-	   //ResponseEntity<List<Station>> responseEntity = restTemplate.getForEntity(url, List<Station>);
-	   // response = restTemplate.getForObject("http://localhost:8081/irctc-api/station/list",String.class);
 	  ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 		String jsonString = response.getBody();
 	   ObjectMapper objectMapper = new ObjectMapper();
