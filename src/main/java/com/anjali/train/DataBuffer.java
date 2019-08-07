@@ -1,11 +1,23 @@
 package com.anjali.train;
 import com.anjali.train.TrainService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 public class DataBuffer {
    public static List<TrainVo> trainList;
@@ -13,6 +25,7 @@ public class DataBuffer {
    public static List<ArrayList<Integer>> route = new ArrayList<>();
    public static HashMap<Integer,ArrayList<Integer>> stnTrainMap=new HashMap<>();
    public static HashMap<Integer,String> trainStnMap = new HashMap<>();
+   //public static LinkedHashMap<Integer, String> stnMap=new  LinkedHashMap<>(); 
    @Autowired
    private TrainService trainService;
   
@@ -29,8 +42,25 @@ public class DataBuffer {
        stationList = stationListx;
    }
  
-   public void createStationMap()
+   public void createStationMap() throws JsonParseException, JsonMappingException, IOException
    {
+       RestTemplate restTemplate = new RestTemplate();
+	   String url = "http://localhost:8081/irctc-api/station/list";
+	   //ResponseEntity<StationList> response = restTemplate.getForEntity(url, StationList.class);
+	   //List<Station> stationList = response.getBody().getStationList();
+	   //stationList=restTemplate.getForObject("http://localhost:8081/irctc-api/station/list",List.class);
+	   //ResponseEntity<List<Station>> responseEntity = restTemplate.getForEntity(url, List<Station>);
+	   // response = restTemplate.getForObject("http://localhost:8081/irctc-api/station/list",String.class);
+	  ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+		String jsonString = response.getBody();
+	   ObjectMapper objectMapper = new ObjectMapper();
+	   stationList =  objectMapper.readValue(jsonString, new TypeReference<List<Station>>(){}); 
+	   
+	   
+	   
+	  stationList.forEach(stn->System.out.println(stn));
+	   
+      // stnMap = stationList.stream().collect(Collectors.toMap(Station::getId,Station::getStation_name,(x, y)-> x + ", " + y,LinkedHashMap::new)); 
 	   trainList =trainService.listTrain();
 	   for(TrainVo t: trainList)
 	   {
@@ -61,4 +91,6 @@ public class DataBuffer {
 	   }
        
    }
+   
+   
 }

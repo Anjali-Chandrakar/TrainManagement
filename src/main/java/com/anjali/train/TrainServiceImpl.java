@@ -193,16 +193,34 @@ Iterable<Train> trainList = trainDao.findAll();
 		}
 		for(Map<ArrayList<Integer>, ArrayList<Integer>> m : listOfTrains)
 		{
-			System.out.println(m.keySet());
-			System.out.println(m.values());
+			//System.out.println(m.keySet());
+			//System.out.println(m.values());
 			Collection<ArrayList<Integer>> temp = m.values();
 			List<Integer> lst = temp.stream().flatMap(x -> x.stream()).collect(Collectors.toList());
+			Collection<ArrayList<Integer>> temp2 = m.keySet();
+			List<Integer> lst2 = temp2.stream().flatMap(x -> x.stream()).collect(Collectors.toList());
 			Train train;
 			Optional<Train> trainOptional;
+			List<String> stationList=new ArrayList<String>();
 			List<String> trainList=new ArrayList<String>();
+			//System.out.println(DataBuffer.stationList);
+			
+		
+			for(Integer stationId: lst2)
+			{
+				for(Station stn : DataBuffer.stationList)
+				{
+					if(stn.getId()==stationId)
+					{
+						stationList.add(stn.getStationName());
+						break;
+					}
+				}
+			}
+			
 			if(lst.isEmpty())
 			{
-				responseMap.put((m.keySet()).toString(),"No Train found for this route");
+				responseMap.put(stationList.toString(),"No Train found for this route");
 			}
 			else
 			{
@@ -212,7 +230,7 @@ Iterable<Train> trainList = trainDao.findAll();
 				train = trainOptional.get();
 				trainList.add(train.getTrainName());
 			}
-			responseMap.put((m.keySet()).toString(), trainList);
+			responseMap.put(stationList.toString(), trainList);
 			}
 		}
 		return responseMap;
