@@ -2,6 +2,7 @@ package com.anjali.train;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.anjali.train.TrainService;
 import com.anjali.train.Constants;
@@ -66,11 +68,16 @@ public class TrainController {
 		return trainList;
 	}
 	@GetMapping(value = Constants.OPERATION_AVAILABLE_TRAIN)
-	public List<TrainVo> listAvailableTrains(@RequestParam Map<String, String> queryMap) {
+	public Map<String, Object> listAvailableTrains(@RequestParam Map<String, String> queryMap) {
 		String from = queryMap.get("from"), to = queryMap.get("to");
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd:MM:yyyy");
 		LocalDate  date = LocalDate.parse(queryMap.get("date"),formatter);
-		List<TrainVo> trainList =trainService.listAvailableTrains(from, to, date);
+		RestTemplate restTemplate = new RestTemplate();
+		Map<String, Object> from_response = restTemplate.getForObject(
+		                    "http://localhost:8081/irctc-api/station/get-id?station=" + from , Map.class);
+		Map<String, Object> to_response = restTemplate.getForObject(
+                "http://localhost:8081/irctc-api/station/get-id?station=" + to , Map.class); 
+		Map<String, Object> trainList =trainService.listAvailableTrains((Integer)from_response.get("stationId"), (Integer)to_response.get("stationId"), date);
 		return trainList;
 	}
 

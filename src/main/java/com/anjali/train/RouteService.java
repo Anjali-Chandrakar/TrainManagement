@@ -1,74 +1,46 @@
 package com.anjali.train;
-//JAVA program to print all 
-//paths from a source to 
-//destination. 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List; 
-//A directed graph using 
-//adjacency list representation 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Service; 
+
+@Service
 public class RouteService { 
 
-	// No. of vertices in graph 
-	private int v; 
-	
+@Bean
+public DataBuffer dataBuffer() {
+    return new DataBuffer();
+}
 	// adjacency list 
 	private ArrayList<Integer>[] adjList; 
-	HashMap<Integer,ArrayList<Integer>> stnTrainMap=new HashMap<>();
-	HashMap<Integer,String> trainStnMap = new HashMap<>();
+	HashMap<Integer,ArrayList<Integer>> stnTrainMap;
+	HashMap<Integer,String> trainStnMap;
+	List<ArrayList<Integer>> rt;
+	
+	// No. of stations
+	private int v;
 	
 	public RouteService() {
 		super();
-		RouteService g = new RouteService(4); 
-		g.addEdge(0,1); 
-		g.addEdge(0,2); 
-		g.addEdge(0,3); 
-		g.addEdge(2,0); 
-		g.addEdge(2,1); 
-		g.addEdge(1,3);
 	}
 	
-	//Constructor 
-	public RouteService(int vertices){ 
-		
-		//initialise vertex count 
-		this.v = vertices; 
-		
-		// initialise adjacency list 
-		initAdjList(); 
-		initStnHash();
-		initTrainHash();
-	} 
-	
-	// utility method to initialise 
-	// adjacency list 
 	@SuppressWarnings("unchecked") 
 	private void initAdjList() 
 	{ 
-		adjList = new ArrayList[v]; 
+		adjList = new ArrayList[v+1]; 
 		
-		for(int i = 0; i < v; i++) 
+		for(int i = 0; i <= v; i++) 
 		{ 
 			adjList[i] = new ArrayList<>(); 
 		} 
 	} 
 	
-	private void initStnHash()
-	{
-		stnTrainMap.put(0,new ArrayList(Arrays.asList(1,2,3)));
-		stnTrainMap.put(1,new ArrayList(Arrays.asList(1,2,4,5)));
-		stnTrainMap.put(2,new ArrayList(Arrays.asList(1,4,3)));
-		stnTrainMap.put(3,new ArrayList(Arrays.asList(1,3,5)));
-	}
-	
-	private void initTrainHash()
-	{
-		trainStnMap.put(1,"2, 0, 1, 3");
-		trainStnMap.put(2,"1, 3");
-		trainStnMap.put(3,"2, 0, 3");
-		trainStnMap.put(4,"2, 1, 3");
-	}
 	// add edge from u to v 
 	public void addEdge(int u, int v) 
 	{ 
@@ -76,90 +48,89 @@ public class RouteService {
 		adjList[u].add(v); 
 	} 
 	
-	// Prints all paths from 
-	// 's' to 'd' 
-	public void printAllPaths(int s, int d) 
+	public List<Map<ArrayList<Integer>, ArrayList<Integer>>> printAllPaths(int s, int d) 
 	{ 
-		boolean[] isVisited = new boolean[v]; 
+		stnTrainMap=DataBuffer.stnTrainMap;
+		trainStnMap=DataBuffer.trainStnMap;
+		rt=DataBuffer.route;
+		v = stnTrainMap.size();
+		initAdjList();
+		//addEdge(0,1);
+		for(ArrayList<Integer> al :rt)
+		{
+			int a=al.get(0);
+			int b=al.get(1);
+			addEdge(a,b);
+		}
+		//System.out.println(adjList);
+		//System.out.println("########    "+v+"     #######");
+		boolean[] isVisited = new boolean[v+1]; 
 		ArrayList<Integer> pathList = new ArrayList<>(); 
 		ArrayList<ArrayList<Integer> > routeList = new ArrayList<ArrayList<Integer> >();
-		//add source to path[] 
 		pathList.add(s); 
-		//Call recursive utility 
 		printAllPathsUtil(s, d, isVisited, pathList, routeList); 
-		findTrains(routeList);
+		System.out.println(routeList);
+		List<Map<ArrayList<Integer>, ArrayList<Integer>>> trainList=findTrains(routeList);
+		return trainList;
 	} 
-
-	// A recursive function to print 
-	// all paths from 'u' to 'd'. 
-	// isVisited[] keeps track of 
-	// vertices in current path. 
-	// localPathList<> stores actual 
-	// vertices in the current path 
-	private void printAllPathsUtil(Integer u, Integer d, 
-									boolean[] isVisited, 
-							ArrayList<Integer> localPathList, ArrayList<ArrayList<Integer> > routeList) 
+	private void printAllPathsUtil(Integer u, Integer d, boolean[] isVisited, ArrayList<Integer> localPathList, ArrayList<ArrayList<Integer> > routeList) 
  { 
 		// Mark the current node 
+		
 		isVisited[u] = true; 
 		
 		if (u.equals(d)) 
 		{ 
 		    routeList.add((ArrayList<Integer>)localPathList.clone());
 			System.out.println(localPathList); 
-			// if match found then no need to traverse more till depth 
 			isVisited[u]= false; 
 			return; 
 		} 
-		
-		// Recur for all the vertices 
-		// adjacent to current vertex 
 		for (Integer i : adjList[u]) 
 		{ 
 			if (!isVisited[i]) 
 			{ 
-				// store current node 
-				// in path[] 
 				localPathList.add(i); 
-				printAllPathsUtil(i, d, isVisited, localPathList, routeList); 
-				
-				// remove current node 
-				// in path[] 
+				printAllPathsUtil(i, d, isVisited, localPathList, routeList); 				
 				localPathList.remove(i); 
 			} 
 		} 
-		
-		// Mark the current node 
 		isVisited[u] = false;
 
 	} 
-	private void findTrains(ArrayList<ArrayList<Integer> > routeList)
+	private List<Map<ArrayList<Integer>, ArrayList<Integer>>> findTrains(ArrayList<ArrayList<Integer> > routeList)
 	{
+		
+		List<Map<ArrayList<Integer>, ArrayList<Integer>>> routeTrainList=new ArrayList<Map<ArrayList<Integer>, ArrayList<Integer>>>();
+		
 		for(ArrayList<Integer> route : routeList)
 		{
-			//route=new ArrayList(Arrays.asList(2,1,3,0));
-			System.out.println(route);
 			ArrayList<Integer> list = new ArrayList<>();
 			list= stnTrainMap.get(route.get(0));
 			for(int stn : route)
 			{
 				list=intersection(list,stnTrainMap.get(stn));
 			}
-			confirmTrains(route,list);
+			routeTrainList.add(confirmTrains(route,list));
 		}
+		return routeTrainList;
 	}
 	
-	private void confirmTrains(ArrayList<Integer> route, ArrayList<Integer> list){
+	private Map<ArrayList<Integer>, ArrayList<Integer>> confirmTrains(ArrayList<Integer> route, ArrayList<Integer> list){
 		String routeStr=route.toString();
+		Map<ArrayList<Integer>, ArrayList<Integer>> response=new LinkedHashMap<ArrayList<Integer>, ArrayList<Integer>>();
 		routeStr = routeStr.substring(1,routeStr.length()-1);
+		ArrayList<Integer> trains=new ArrayList<Integer>();
 		for(Integer t : list)
 		{
 			if((trainStnMap.get(t)).contains(routeStr))
 			{
 				System.out.println(route + "-->"+t);	
+				trains.add(t);
 			}
 		}
-		
+		response.put(route, trains);
+		return response;
 	}
 	
 	public static <Integer> ArrayList<Integer> intersection(ArrayList<Integer> list1, ArrayList<Integer> list2) {

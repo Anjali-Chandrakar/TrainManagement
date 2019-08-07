@@ -8,22 +8,23 @@ public class TrainVo implements Serializable{
 	private Integer id;
 	private String trainName;
 	private Integer capacity;
+	private String path;
 	
 	public TrainVo() {
 		super();
 	}
-	
-	public TrainVo(String trainName, Integer capacity) {
+	public TrainVo(String trainName, Integer capacity, String path) {
 		super();
 		this.trainName = trainName;
 		this.capacity = capacity;
+		this.path = path;
 	}
-	
-	public TrainVo(Integer id, String trainName, Integer capacity) {
+	public TrainVo(Integer id, String trainName, Integer capacity, String path) {
 		super();
 		this.id = id;
 		this.trainName = trainName;
 		this.capacity = capacity;
+		this.path = path;
 	}
 	
 	public Integer getId() {
@@ -45,12 +46,14 @@ public class TrainVo implements Serializable{
 		this.capacity = capacity;
 	}
 
+	public String getPath() {
+		return path;
+	}
+	public void setPath(String path) {
+		this.path = path;
+	}
 	@Override
 	public String toString() {
-		return "TrainVo [id=" + id + ", trainName=" + trainName + ", capacity=" + capacity + "]";
+		return "TrainVo [id=" + id + ", trainName=" + trainName + ", capacity=" + capacity + ", path=" + path + "]";
 	}
-	
-	
-	
-	
 }

@@ -2,13 +2,19 @@ package com.anjali.train;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import com.anjali.train.TrainDao;
 import com.anjali.train.Train;
@@ -20,7 +26,8 @@ import com.anjali.train.TrainVo;
 public class TrainServiceImpl implements TrainService{
 	@Autowired
 	private TrainDao trainDao;
-	RouteService routeService=new RouteService();
+	@Autowired
+	RouteService routeService;
 
 	public Map<String, Object> createTrain(TrainVo trainVo) {
 Map<String, Object> responseMap = new LinkedHashMap<String, Object>();
@@ -45,7 +52,14 @@ Map<String, Object> responseMap = new LinkedHashMap<String, Object>();
 			return responseMap;
 		}
 		
-		Train train=new Train(name,capacity);
+		String path= trainVo.getTrainName();
+		if (path == null || path.trim().isEmpty()){
+			responseMap.put(Constants.STATUS, Constants.STATUS_ERROR);
+			responseMap.put(Constants.MESSAGE, "path can not be empty");
+			return responseMap;
+		}
+		
+		Train train=new Train(name,capacity,path);
 		Train savedTrain=(Train) trainDao.save(train);
 		
 		if (savedTrain != null) {
@@ -74,7 +88,8 @@ Map<String, Object> responseMap = new LinkedHashMap<String, Object>();
 			Train train = trainOptional.get();
 			TrainVo trainVo = new TrainVo(train.getId(), 
 					train.getTrainName() ,
-					train.getCapacity());
+					train.getCapacity(),
+					train.getPath());
 			responseMap.put(Constants.STATUS, Constants.STATUS_SUCCESS);
 			responseMap.put(Constants.MESSAGE, "train record found");
 			responseMap.put("train record: ", trainVo);
@@ -159,17 +174,49 @@ Iterable<Train> trainList = trainDao.findAll();
 			TrainVo trainVo = new TrainVo(
 					train.getId(), 
 					train.getTrainName(),
-					train.getCapacity());
+					train.getCapacity(),
+					train.getPath());
 			trainVoList.add(trainVo);
 		});
 		
 		return trainVoList;
 	}
-
-	@Override
-	public List<TrainVo> listAvailableTrains(String from_station, String to_station, LocalDate date) {
-		routeService.printAllPaths(2,3);
-		return null;
+	
+	public Map<String, Object> listAvailableTrains(Integer from_station, Integer to_station, LocalDate date) {
+		Map<String, Object> responseMap=new LinkedHashMap<String, Object>();
+		List<Map<ArrayList<Integer>, ArrayList<Integer>>> listOfTrains=routeService.printAllPaths(from_station,to_station);
+		if(listOfTrains.isEmpty())
+		{
+			responseMap.put(Constants.STATUS, Constants.STATUS_ERROR);
+			responseMap.put(Constants.MESSAGE, "No Train found for this route");
+			return responseMap;
+		}
+		for(Map<ArrayList<Integer>, ArrayList<Integer>> m : listOfTrains)
+		{
+			System.out.println(m.keySet());
+			System.out.println(m.values());
+			Collection<ArrayList<Integer>> temp = m.values();
+			List<Integer> lst = temp.stream().flatMap(x -> x.stream()).collect(Collectors.toList());
+			Train train;
+			Optional<Train> trainOptional;
+			List<String> trainList=new ArrayList<String>();
+			if(lst.isEmpty())
+			{
+				responseMap.put((m.keySet()).toString(),"No Train found for this route");
+			}
+			else
+			{
+			for(Integer trainId: lst)
+			{
+				trainOptional = trainDao.findById(trainId);
+				train = trainOptional.get();
+				trainList.add(train.getTrainName());
+			}
+			responseMap.put((m.keySet()).toString(), trainList);
+			}
+		}
+		return responseMap;
 	}
+	
 
 }

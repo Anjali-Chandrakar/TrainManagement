@@ -1,6 +1,7 @@
 package com.anjali.train;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -14,5 +15,5 @@ public interface TrainService {
 	Map<String, Object> updateTrain(TrainVo trainVo);
 	Map<String, Object> deleteTrain(Integer id);
 	List<TrainVo> listTrain();
-	List<TrainVo> listAvailableTrains(String from_satation,String to_station, LocalDate date);
+	Map<String, Object> listAvailableTrains(Integer from_satation,Integer to_station, LocalDate date);
 }
