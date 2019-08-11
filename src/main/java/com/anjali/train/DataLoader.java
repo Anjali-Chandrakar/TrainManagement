@@ -1,13 +1,12 @@
 package com.anjali.train;
-import com.anjali.train.TrainService;
+import com.anjali.train.service.TrainService;
+import com.anjali.train.vo.TrainVo;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
@@ -17,15 +16,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-public class DataBuffer {
+public class DataLoader {
    public static List<TrainVo> trainList;
    public static List<Station> stationList;
    public static List<ArrayList<Integer>> route = new ArrayList<>();
    public static HashMap<Integer,ArrayList<Integer>> stnTrainMap=new HashMap<>();
    public static HashMap<Integer,String> trainStnMap = new HashMap<>();
-   //public static LinkedHashMap<Integer, String> stnMap=new  LinkedHashMap<>(); 
+   public static LinkedHashMap<Integer, String> stnMap=new  LinkedHashMap<>(); 
    @Autowired
    private TrainService trainService;
   
@@ -42,6 +40,17 @@ public class DataBuffer {
        stationList = stationListx;
    }
  
+   public static Integer getStationId(String stnName)
+   {
+	   for(Station stn : stationList)
+		{
+			if(stn.getStationName().toLowerCase().equals(stnName.toLowerCase()))
+			{
+				return stn.getId();
+			}
+		}
+	   return null;
+   }
    public void createStationMap() throws JsonParseException, JsonMappingException, IOException
    {
        RestTemplate restTemplate = new RestTemplate();
@@ -55,7 +64,7 @@ public class DataBuffer {
 	   
 	  stationList.forEach(stn->System.out.println(stn));
 	   
-      // stnMap = stationList.stream().collect(Collectors.toMap(Station::getId,Station::getStation_name,(x, y)-> x + ", " + y,LinkedHashMap::new)); 
+       stnMap = stationList.stream().collect(Collectors.toMap(Station::getId,Station::getStationName,(x, y)-> x + ", " + y,LinkedHashMap::new)); 
 	   trainList =trainService.listTrain();
 	   for(TrainVo t: trainList)
 	   {

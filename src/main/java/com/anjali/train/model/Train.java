@@ -1,4 +1,4 @@
-package com.anjali.train;
+package com.anjali.train.model;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

@@ -1,4 +1,4 @@
-package com.anjali.train;
+package com.anjali.train.vo;
 
 import java.io.Serializable;
 

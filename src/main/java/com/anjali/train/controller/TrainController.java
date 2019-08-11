@@ -1,8 +1,8 @@
-package com.anjali.train;
+package com.anjali.train.controller;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -19,9 +19,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import com.anjali.train.TrainService;
-import com.anjali.train.Constants;
-import com.anjali.train.TrainVo;
+import com.anjali.train.DataLoader;
+import com.anjali.train.service.TrainService;
+import com.anjali.train.util.Constants;
+import com.anjali.train.vo.TrainVo;
 
 @RestController
 @RequestMapping(value = Constants.IRCTC_TRAIN)
@@ -70,14 +71,19 @@ public class TrainController {
 	@GetMapping(value = Constants.OPERATION_AVAILABLE_TRAIN)
 	public Map<String, Object> listAvailableTrains(@RequestParam Map<String, String> queryMap) {
 		String from = queryMap.get("from"), to = queryMap.get("to");
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd:MM:yyyy");
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 		LocalDate  date = LocalDate.parse(queryMap.get("date"),formatter);
 		RestTemplate restTemplate = new RestTemplate();
-		Map<String, Object> from_response = restTemplate.getForObject(
-		                    "http://localhost:8081/irctc-api/station/get-id?station=" + from , Map.class);
-		Map<String, Object> to_response = restTemplate.getForObject(
-                "http://localhost:8081/irctc-api/station/get-id?station=" + to , Map.class); 
-		Map<String, Object> trainList =trainService.listAvailableTrains((Integer)from_response.get("stationId"), (Integer)to_response.get("stationId"), date);
+		Integer fromId=DataLoader.getStationId(from);
+		Integer toId=DataLoader.getStationId(to);
+		if(fromId==null || toId==null)
+		{
+			Map<String, Object> responseMap=new  LinkedHashMap<String, Object>();
+			responseMap.put(Constants.STATUS, Constants.STATUS_ERROR);
+			responseMap.put(Constants.MESSAGE, "No Station found with this name");
+			return responseMap;
+		}
+		Map<String, Object> trainList =trainService.listAvailableTrains(fromId, toId, date);
 		return trainList;
 	}
 

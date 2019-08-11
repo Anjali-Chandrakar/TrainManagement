@@ -1,6 +1,7 @@
-package com.anjali.train;
+package com.anjali.train.service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -10,17 +11,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
-import com.anjali.train.TrainDao;
-import com.anjali.train.Train;
-import com.anjali.train.TrainService;
-import com.anjali.train.Constants;
-import com.anjali.train.TrainVo;
+import com.anjali.train.DataLoader;
+import com.anjali.train.RouteService;
+import com.anjali.train.dao.TrainDao;
+import com.anjali.train.model.Train;
+import com.anjali.train.util.Constants;
+import com.anjali.train.vo.TrainVo;
 
 @Component
 public class TrainServiceImpl implements TrainService{
@@ -184,6 +182,14 @@ Iterable<Train> trainList = trainDao.findAll();
 	
 	public Map<String, Object> listAvailableTrains(Integer from_station, Integer to_station, LocalDate date) {
 		Map<String, Object> responseMap=new LinkedHashMap<String, Object>();
+		LocalDate localDate = LocalDate.now();
+        if(date.isBefore(localDate))
+        {
+        	responseMap.put(Constants.STATUS, Constants.STATUS_ERROR);
+			responseMap.put(Constants.MESSAGE, "Booking Date should be after : "+DateTimeFormatter.ofPattern("dd/MM/yyyy").format(localDate));
+			return responseMap;
+        }
+        
 		List<Map<ArrayList<Integer>, ArrayList<Integer>>> listOfTrains=routeService.printAllPaths(from_station,to_station);
 		if(listOfTrains.isEmpty())
 		{
@@ -208,14 +214,7 @@ Iterable<Train> trainList = trainDao.findAll();
 		
 			for(Integer stationId: lst2)
 			{
-				for(Station stn : DataBuffer.stationList)
-				{
-					if(stn.getId()==stationId)
-					{
-						stationList.add(stn.getStationName());
-						break;
-					}
-				}
+				stationList.add(DataLoader.stnMap.get(stationId));
 			}
 			
 			if(lst.isEmpty())
@@ -230,7 +229,7 @@ Iterable<Train> trainList = trainDao.findAll();
 				train = trainOptional.get();
 				trainList.add(train.getTrainName());
 			}
-			responseMap.put(stationList.toString(), trainList);
+			responseMap.put(stationList.toString(), trainList.toString());
 			}
 		}
 		return responseMap;

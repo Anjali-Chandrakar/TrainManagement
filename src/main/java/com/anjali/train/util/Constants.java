@@ -1,4 +1,4 @@
-package com.anjali.train;
+package com.anjali.train.util;
 
 public class Constants {
 

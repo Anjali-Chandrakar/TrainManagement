@@ -1,11 +1,11 @@
-package com.anjali.train;
+package com.anjali.train.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.anjali.train.TrainVo;
+import com.anjali.train.vo.TrainVo;
 
 
 public interface TrainService {

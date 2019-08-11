@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 public class RouteService { 
 
 @Bean
-public DataBuffer dataBuffer() {
-    return new DataBuffer();
+public DataLoader dataBuffer() {
+    return new DataLoader();
 }
 	// adjacency list 
 	private ArrayList<Integer>[] adjList; 
@@ -48,9 +48,9 @@ public DataBuffer dataBuffer() {
 	
 	public List<Map<ArrayList<Integer>, ArrayList<Integer>>> printAllPaths(int s, int d) 
 	{ 
-		stnTrainMap=DataBuffer.stnTrainMap;
-		trainStnMap=DataBuffer.trainStnMap;
-		rt=DataBuffer.route;
+		stnTrainMap=DataLoader.stnTrainMap;
+		trainStnMap=DataLoader.trainStnMap;
+		rt=DataLoader.route;
 		v = stnTrainMap.size();
 		initAdjList();
 		//addEdge(0,1);
